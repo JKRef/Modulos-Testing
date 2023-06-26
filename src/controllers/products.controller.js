@@ -1,86 +1,97 @@
-import ProductValidator from "../validators/product.validator.js";
-import { MongoErrorHandler } from "../utils/customErrors/mongoErrors.js";
+const getSERVICES = require("../services/index.service");
+const ProductsService = require("../services/products.service");
+const { HTTP_STATUS } = require("../utils/api.utils");
 
-class ProductsController{
-    async getAllProducts(req ,res){
-        try{
-            const products = await ProductValidator.getProducts(req.query);
+const { productsService } = getSERVICES();
 
-            res.status(200).json(products);
-        }catch(err){
-            let error = MongoErrorHandler(err) || err;
-
-            if(!err.status){
-                return res.status(500).json({ error: 'UNHANDLED ERROR', message: err.message})
-            }
-
-            res.status(error.status).json({ error: error.name, message: error.message });
-        }
+class ProductsController {
+  static async generateProducts(req, res, next) {
+    const { total } = req.params;
+    try {
+      const products = await productsService.generateProducts(total);
+      const response = {
+        success: true,
+        products,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
     }
-    
-    async getProductByID(req, res){
-        try{
-            const product = await ProductValidator.getProductByID(req.params.id);
+  }
 
-            res.status(200).json(product);
-        }catch(err){
-            let error = MongoErrorHandler(err) || err;
-
-            if(!err.status){
-                return res.status(500).json({ error: 'UNHANDLED ERROR', message: err.message})
-            }
-
-            res.status(error.status).json({ error: error.name, message: error.message });
-        }
+  static async getProducts(req, res, next) {
+    const { filter } = req.params;
+    try {
+      const products = await productsService.getProducts(filter);
+      const response = {
+        success: true,
+        products,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    async addProduct(req, res){
-        try{
-            const product = await ProductValidator.createProduct(req);
-
-            res.status(200).json({status: "SUCCESSFUL", result: product})
-        }catch(err){
-            let error = MongoErrorHandler(err) || err;
-
-            if(!err.status){
-                return res.status(500).json({ error: 'UNHANDLED ERROR', message: err.message})
-            }
-            
-            res.status(error.status).json({ error: error.name, message: error.message });
-        }
+  static async getProductById(req, res, next) {
+    const { pid } = req.params;
+    try {
+      const product = await productsService.getProductById(pid);
+      const response = {
+        success: true,
+        product,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    async editProduct(req, res){
-        try{
-            const product = await ProductValidator.updateProduct(req.params.id, req);
-            
-            res.status(200).json({status: "SUCCESSFUL", result: product});
-        }catch(err){
-            let error = MongoErrorHandler(err) || err;
-
-            if(!err.status){
-                return res.status(500).json({ error: 'UNHANDLED ERROR', message: err.message})
-            }
-            
-            res.status(error.status).json({ error: error.name, message: error.message });
-        }
+  static async createProduct(req, res, next) {
+    const payload = req.body;
+    try {
+      const newProduct = await productsService.createProduct(payload);
+      const response = {
+        success: true,
+        newProduct,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    async deleteProduct(req, res){
-        try{
-            const product = await ProductValidator.deleteProduct(req.params.id, req.user);
-
-            res.status(200).json({status: 'SUCCESSFUL', message: 'Product was successfully deleted', product});
-        }catch(err){
-            let error = MongoErrorHandler(err) || err;
-
-            if(!err.status){
-                return res.status(500).json({ error: 'UNHANDLED ERROR', message: err.message})
-            }
-            
-            res.status(error.status).json({ error: error.name, message: error.message });
-        }
+  static async updateProductById(req, res, next) {
+    const { pid } = req.params;
+    const payload = req.body;
+    try {
+      const updatedProduct = await productsService.updateProductById(
+        pid,
+        payload
+      );
+      const response = {
+        success: true,
+        updatedProduct,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
     }
+  }
+
+  static async deleteProductById(req, res, next) {
+    const { pid } = req.params;
+    try {
+      const deletedProduct = await productsService.deleteProductById(pid);
+      const response = {
+        success: true,
+        deletedProduct,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
-export default new ProductsController();
+module.exports = ProductsController;

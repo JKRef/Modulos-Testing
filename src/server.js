@@ -1,45 +1,46 @@
-import express from "express";
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const passport = require("passport");
+const mongoose = require("mongoose");
+const apiRouter = require("./routers/app.routers");
+const errorHandler = require("./middleware/error.middleware");
+const DB_CONFIG = require("./config/db.config");
+const ENV_CONFIG = require("./config/env.config");
+const logger = require("./logger");
 
-import handlebars from 'express-handlebars';
-import Handlebars from 'handlebars';
-import { allowInsecurePrototypeAccess } from '@handlebars/allow-prototype-access';
-
-import config from "./config/envVariables.js";
-import path from 'path';
-import { __dirname } from './utils-dirName.js';
-
-import initializePassport from "./config/passport.config.js";
-import cookieParser from "cookie-parser";
-import passport from "passport";
-
-import indexRoutes from './routes/index.routes.js';
-import bodyParser from "body-parser";
-
-// - application
 const app = express();
 
-// -- middlewares
-app.use('/static/', express.static(path.resolve(__dirname + '/public')));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 app.use(cookieParser());
-initializePassport();
 app.use(passport.initialize());
 
-/*app.use(function(err, req, res, next) {
-    console.error(err.stack);
-    res.status(500).json({message: 'brb'})
-})*/
-app.use('/', indexRoutes)
+app.use("/api", apiRouter);
 
-// --- handlebars config
-app.engine('hbs', handlebars.engine({
-    extname: 'hbs',
-    defaultLayout: 'main',
-    handlebars: allowInsecurePrototypeAccess(Handlebars)
-}))
-app.set('view engine', 'hbs');
-app.set('views', `${__dirname}/views`);
+app.use(errorHandler);
 
-// - server start
-app.listen(config.PORT, () => console.log(`Server up in port ${config.PORT}`))
+const { PORT } = ENV_CONFIG;
+
+mongoose
+  .connect(DB_CONFIG.mongo.uri)
+  .then(() => {
+    logger.info("Connected to DB successfully!");
+    const server = app.listen(+PORT, () => {
+      const serverURI = `http://localhost:${+PORT}`;
+      logger.info(`Server is up and running on ${serverURI}`);
+    });
+    server.on("error", (error) => {
+      const serverURI = `http://localhost:${+PORT}`;
+      logger.error(
+        `There was an error trying to start the server on ${serverURI}`
+      );
+      throw error;
+    });
+  })
+  .catch((error) => {
+    logger.error(
+      `There was an error trying to connect to ${DB_CONFIG.mongo.uri}`
+    );
+    throw error;
+  });
