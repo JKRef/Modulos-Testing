@@ -1,17 +1,17 @@
-const SaveUserDTO = require("../models/dtos/users.dto");
 const getSERVICES = require("../services/index.service");
+const OrdersService = require("../services/orders.service");
 const { HTTP_STATUS } = require("../utils/api.utils");
 
-const { usersService } = getSERVICES();
+const { ordersService } = getSERVICES();
 
-class UsersController {
-  static async generateUsers(req, res, next) {
+class OrdersController {
+  static async generateOrders(req, res, next) {
     const { total } = req.params;
     try {
-      const users = await usersService.generateUsers(total);
+      const orders = await ordersService.generateOrders(total);
       const response = {
         success: true,
-        users,
+        orders,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -19,12 +19,12 @@ class UsersController {
     }
   }
 
-  static async getUsers(req, res, next) {
+  static async getOrders(req, res, next) {
     try {
-      const users = await usersService.getUsers();
+      const orders = await ordersService.getOrders();
       const response = {
         success: true,
-        users,
+        orders,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -32,13 +32,13 @@ class UsersController {
     }
   }
 
-  static async getUserById(req, res, next) {
-    const { uid } = req.params;
+  static async getOrderById(req, res, next) {
+    const { oid } = req.params;
     try {
-      const user = await usersService.getUserById(uid);
+      const order = await ordersService.getOrderById(oid);
       const response = {
         success: true,
-        user,
+        order,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -46,14 +46,13 @@ class UsersController {
     }
   }
 
-  static async createUser(req, res, next) {
+  static async createOrder(req, res, next) {
     const payload = req.body;
     try {
-      const userPayload = new SaveUserDTO(payload);
-      const newUser = await usersService.createUser(userPayload);
+      const newOrder = await ordersService.createOrder(payload);
       const response = {
         success: true,
-        newUser,
+        newOrder,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -61,14 +60,14 @@ class UsersController {
     }
   }
 
-  static async updateUserById(req, res, next) {
-    const { uid } = req.params;
-    const payload = req.body;
+  static async updateOrderById(req, res, next) {
+    const { oid } = req.params;
+    const { resolution } = req.body;
     try {
-      const updatedUser = await usersService.updateUserById(uid, payload);
+      const updatedOrder = await ordersService.updateOrderById(oid, resolution);
       const response = {
         success: true,
-        updatedUser,
+        updatedOrder,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -76,13 +75,13 @@ class UsersController {
     }
   }
 
-  static async deleteUserById(req, res, next) {
-    const { uid } = req.params;
+  static async deleteOrderById(req, res, next) {
+    const { oid } = req.params;
     try {
-      const deletedUser = await usersService.deleteUserById(uid);
+      const deletedOrder = await ordersService.deleteOrderById(oid);
       const response = {
         success: true,
-        deletedUser,
+        deletedOrder,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -91,4 +90,4 @@ class UsersController {
   }
 }
 
-module.exports = UsersController;
+module.exports = OrdersController;
